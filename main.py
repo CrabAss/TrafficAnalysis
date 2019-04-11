@@ -6,29 +6,10 @@ import numpy as np  # numPy is the fundamental package for scientific computing 
 
 # https://docs.scipy.org/doc/numpy-1.16.1/user/quickstart.html.
 
-# Read BJ16_M32x32_T30_InOut.h5.
+### DATA READING STAGE ###
 
 f1 = h5py.File ( "data/BJ16_M32x32_T30_InOut.h5", "r" )
-print ( "Subsets in BJ16_M32x32_T30_InOut.h5:" )
-# List names and shapes of all datasets in the file.
-for key in f1.keys ():
-    print ( key, f1[key].shape )
-# the following lines will be shown on the screen:
-# data (7220, 2, 32, 32)
-# date (7220,)
-
-# Read BJ16_M32x32_T30_InOut.h5.
-
 f2 = h5py.File ( "data/BJ_Meteorology.h5", "r" )
-print ( "Subsets in BJ_Meteorology.h5:" )
-# List names and shapes of all datasets in the file.
-for key in f2.keys ():
-    print ( key, f2[key].shape )
-# the following lines will be shown on the screen:
-# Temperature (7220,)
-# Weather (7220, 17)
-# WindSpeed (7220,)
-# date (7220,)
 
 
 # Transform a datasets in a .h5 file into an numpy array.
@@ -37,7 +18,6 @@ date = f1["date"][:]
 # A array of shape 7220x1 where date[i] is the time of i-th timeslot.
 
 data = f1["data"][:]
-# data_scaled = preprocessing.scale(data)
 # An array of shape 7220x2x32x32 where the first dimension represents the index of timeslots. data[i][0] is a (32, 32) inflow matrix and data[i][1] is a (32, 32) outflow matrix.
 
 temperature = f2["Temperature"][:]
@@ -70,6 +50,7 @@ windspeed = f2["WindSpeed"][:]
 f1.close ()
 f2.close ()
 
+
 ### DATA PREPROCESSING STAGE ###
 
 dateReadable = np.zeros ( (date.size, 3), dtype=int )
@@ -78,12 +59,14 @@ dateReadable = np.zeros ( (date.size, 3), dtype=int )
 # Column 3: "1" if this date is in weekend. "0" otherwise.
 
 INITIAL_DATE = datetime.date ( 2015, 11, 1 )
-index2write = 0
+i = 0
 for x in np.nditer ( date ):
     current_date = datetime.datetime.strptime ( x.item ( 0 )[:8].decode ( 'ascii' ), "%Y%m%d" ).date ()
     day_number = (current_date - INITIAL_DATE).days
     hour = int ( x.item ( 0 )[8:].decode ( 'ascii' ) )
     is_weekend = 1 if current_date.weekday () > 4 else 0
 
-    dateReadable[index2write] = [day_number, hour, is_weekend]
-    index2write += 1
+    dateReadable[i] = [day_number, hour, is_weekend]
+    i += 1
+
+# TODO: inflow/outflow data normalization
