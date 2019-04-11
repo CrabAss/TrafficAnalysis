@@ -1,29 +1,29 @@
+import datetime
+
 import h5py  # h5py package is a Pythonic interface to the HDF5 binary data format.
 # http://docs.h5py.org/en/stable/quick.html.
-import numpy  # numPy is the fundamental package for scientific computing with Python.
+import numpy as np  # numPy is the fundamental package for scientific computing with Python.
+
 # https://docs.scipy.org/doc/numpy-1.16.1/user/quickstart.html.
-
-from sklearn import preprocessing
-
 
 # Read BJ16_M32x32_T30_InOut.h5.
 
-f1 = h5py.File("data/BJ16_M32x32_T30_InOut.h5", "r")
-print("Subsets in BJ16_M32x32_T30_InOut.h5:")
+f1 = h5py.File ( "data/BJ16_M32x32_T30_InOut.h5", "r" )
+print ( "Subsets in BJ16_M32x32_T30_InOut.h5:" )
 # List names and shapes of all datasets in the file.
-for key in f1.keys():
-    print(key, f1[key].shape)
+for key in f1.keys ():
+    print ( key, f1[key].shape )
 # the following lines will be shown on the screen:
 # data (7220, 2, 32, 32)
 # date (7220,)
 
 # Read BJ16_M32x32_T30_InOut.h5.
 
-f2 = h5py.File("data/BJ_Meteorology.h5", "r")
-print("Subsets in BJ_Meteorology.h5:")
+f2 = h5py.File ( "data/BJ_Meteorology.h5", "r" )
+print ( "Subsets in BJ_Meteorology.h5:" )
 # List names and shapes of all datasets in the file.
-for key in f2.keys():
-    print(key, f2[key].shape)
+for key in f2.keys ():
+    print ( key, f2[key].shape )
 # the following lines will be shown on the screen:
 # Temperature (7220,)
 # Weather (7220, 17)
@@ -35,9 +35,6 @@ for key in f2.keys():
 
 date = f1["date"][:]
 # A array of shape 7220x1 where date[i] is the time of i-th timeslot.
-
-
-
 
 data = f1["data"][:]
 # data_scaled = preprocessing.scale(data)
@@ -70,5 +67,23 @@ windspeed = f2["WindSpeed"][:]
 # An array of shape 7220x1 where windspeed[i] is the wind speed at i-th timeslot.
 
 
-f1.close()
-f2.close()
+f1.close ()
+f2.close ()
+
+### DATA PREPROCESSING STAGE ###
+
+dateReadable = np.zeros ( (date.size, 3), dtype=int )
+# Column 1: The number of days from the INITIAL_DATE to the current one
+# Column 2: The number of time slot. Each time slot lasts 30 minutes.
+# Column 3: "1" if this date is in weekend. "0" otherwise.
+
+INITIAL_DATE = datetime.date ( 2015, 11, 1 )
+index2write = 0
+for x in np.nditer ( date ):
+    current_date = datetime.datetime.strptime ( x.item ( 0 )[:8].decode ( 'ascii' ), "%Y%m%d" ).date ()
+    day_number = (current_date - INITIAL_DATE).days
+    hour = int ( x.item ( 0 )[8:].decode ( 'ascii' ) )
+    is_weekend = 1 if current_date.weekday () > 4 else 0
+
+    dateReadable[index2write] = [day_number, hour, is_weekend]
+    index2write += 1
