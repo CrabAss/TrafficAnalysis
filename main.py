@@ -8,9 +8,8 @@ import numpy as np  # numPy is the fundamental package for scientific computing 
 
 ### DATA READING STAGE ###
 
-f1 = h5py.File ( "data/BJ16_M32x32_T30_InOut.h5", "r" )
-f2 = h5py.File ( "data/BJ_Meteorology.h5", "r" )
-
+f1 = h5py.File("data/BJ16_M32x32_T30_InOut.h5", "r")
+f2 = h5py.File("data/BJ_Meteorology.h5", "r")
 
 # Transform a datasets in a .h5 file into an numpy array.
 
@@ -18,7 +17,8 @@ date = f1["date"][:]
 # A array of shape 7220x1 where date[i] is the time of i-th timeslot.
 
 data = f1["data"][:]
-# An array of shape 7220x2x32x32 where the first dimension represents the index of timeslots. data[i][0] is a (32, 32) inflow matrix and data[i][1] is a (32, 32) outflow matrix.
+# An array of shape 7220x2x32x32 where the first dimension represents the index of timeslots. data[i][0] is a (32,
+# 32) inflow matrix and data[i][1] is a (32, 32) outflow matrix.
 
 temperature = f2["Temperature"][:]
 # An array of shape 7220x1 where temperature[i] is the temperature at i-th timeslot.
@@ -47,26 +47,26 @@ windspeed = f2["WindSpeed"][:]
 # An array of shape 7220x1 where windspeed[i] is the wind speed at i-th timeslot.
 
 
-f1.close ()
-f2.close ()
-
+f1.close()
+f2.close()
 
 ### DATA PREPROCESSING STAGE ###
 
-dateReadable = np.zeros ( (date.size, 3), dtype=int )
+dateReadable = np.zeros((date.size, 3), dtype=int)
 # Column 1: The number of days from the INITIAL_DATE to the current one
 # Column 2: The number of time slot. Each time slot lasts 30 minutes.
 # Column 3: "1" if this date is in weekend. "0" otherwise.
 
-INITIAL_DATE = datetime.date ( 2015, 11, 1 )
+INITIAL_DATE = datetime.date(2015, 11, 1)
 i = 0
-for x in np.nditer ( date ):
-    current_date = datetime.datetime.strptime ( x.item ( 0 )[:8].decode ( 'ascii' ), "%Y%m%d" ).date ()
+for x in np.nditer(date):
+    current_date = datetime.datetime.strptime(x.item(0)[:8].decode('ascii'), "%Y%m%d").date()
     day_number = (current_date - INITIAL_DATE).days
-    hour = int ( x.item ( 0 )[8:].decode ( 'ascii' ) )
-    is_weekend = 1 if current_date.weekday () > 4 else 0
+    hour = int(x.item(0)[8:].decode('ascii'))
+    is_weekend = 1 if current_date.weekday() > 4 else 0
 
     dateReadable[i] = [day_number, hour, is_weekend]
     i += 1
 
 # TODO: inflow/outflow data normalization
+# https://scikit-learn.org/stable/modules/preprocessing.html
