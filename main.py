@@ -1,10 +1,8 @@
 import datetime
 
-import h5py  # h5py package is a Pythonic interface to the HDF5 binary data format.
-# http://docs.h5py.org/en/stable/quick.html.
-import numpy as np  # numPy is the fundamental package for scientific computing with Python.
-
-# https://docs.scipy.org/doc/numpy-1.16.1/user/quickstart.html.
+import h5py
+import numpy as np
+from sklearn import preprocessing
 
 ### DATA READING STAGE ###
 
@@ -59,14 +57,22 @@ dateReadable = np.zeros((date.size, 3), dtype=int)
 
 INITIAL_DATE = datetime.date(2015, 11, 1)
 i = 0
-for x in np.nditer(date):
-    current_date = datetime.datetime.strptime(x.item(0)[:8].decode('ascii'), "%Y%m%d").date()
+for x in date:
+    current_date = datetime.datetime.strptime(x[:8].decode('ascii'), "%Y%m%d").date()
     day_number = (current_date - INITIAL_DATE).days
-    hour = int(x.item(0)[8:].decode('ascii'))
+    hour = int(x[8:].decode('ascii'))
     is_weekend = 1 if current_date.weekday() > 4 else 0
 
     dateReadable[i] = [day_number, hour, is_weekend]
     i += 1
 
-# TODO: inflow/outflow data normalization
-# https://scikit-learn.org/stable/modules/preprocessing.html
+date = dateReadable
+del dateReadable
+
+i = 0
+for x in data:
+    j = 0
+    for y in x:
+        data[i][j] = preprocessing.scale(y)
+        j += 1
+    i += 1
