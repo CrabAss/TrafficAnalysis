@@ -3,6 +3,7 @@ import datetime
 import h5py
 import numpy as np
 from sklearn import preprocessing
+from sklearn import svm
 
 ### DATA READING STAGE ###
 
@@ -60,7 +61,7 @@ i = 0
 for x in date:
     current_date = datetime.datetime.strptime(x[:8].decode('ascii'), "%Y%m%d").date()
     day_number = (current_date - INITIAL_DATE).days
-    hour = int(x[8:].decode('ascii'))
+    hour = int(x[8:].decode('ascii')) - 1  # start from 0
     is_weekend = 1 if current_date.weekday() > 4 else 0
 
     dateReadable[i] = [day_number, hour, is_weekend]
@@ -69,6 +70,51 @@ for x in date:
 date = dateReadable
 del dateReadable
 
+# Data cleansing
+
+dayNum, hourNum = 0, 0
+isBrokenEntry = False
+currentEntryStart, i = 0, 0
+dirtyEntries = []
+dirtyDays = []
+
+for x in date:
+    if x[0] != dayNum:
+        if hourNum != 48:
+            isBrokenEntry = True
+        if isBrokenEntry:
+            for j in range(currentEntryStart, i):
+                dirtyEntries.append(j)
+            dirtyDays.append(dayNum)
+        dayNum = x[0]
+        hourNum = 0
+        currentEntryStart = i
+        isBrokenEntry = False
+    if x[1] == hourNum:
+        hourNum += 1
+    else:
+        isBrokenEntry = True
+        hourNum = x[1] + 1
+    i += 1
+
+if hourNum != 48:
+    isBrokenEntry = True
+if isBrokenEntry:
+    for j in range(currentEntryStart, i):
+        dirtyEntries.append(j)
+    dirtyDays.append(dayNum)
+
+print("Number of valid entries:" + str(len(date) - len(dirtyEntries)))
+
+date = np.delete(date, dirtyEntries, axis=0)
+data = np.delete(data, dirtyEntries, axis=0)
+# temperature = np.delete(temperature, dirtyEntries, axis=0)
+# weather = np.delete(weather, dirtyEntries, axis=0)
+# windspeed = np.delete(windspeed, dirtyEntries, axis=0)
+
+
+# Data normalization
+
 i = 0
 for x in data:
     j = 0
@@ -76,3 +122,23 @@ for x in data:
         data[i][j] = preprocessing.scale(y)
         j += 1
     i += 1
+
+data = np.reshape(data, (138, 98304))  # only normalized inflow/outflow data in 138 valid days
+label = date[::48, 2]  # "1" if this date is in weekend; "0" otherwise
+
+### DATA MODELLING STAGE ###
+
+# Please refer to the link below to learn more:
+# Introduction: https://scikit-learn.org/stable/tutorial/basic/tutorial.html#learning-and-predicting
+# User Guide: https://scikit-learn.org/stable/user_guide.html
+# Choosing the right estimator: https://scikit-learn.org/stable/tutorial/machine_learning_map/index.html
+
+# The code below is only an example. This model performs VERY POOR.
+# Need improvement.
+
+clf = svm.SVC(gamma=0.001, C=100.)  # Parameter tuning NEEDED.
+
+clf.fit(data[:-10], label[:-10])
+print(clf.predict(data[-10:]))
+
+# ACTUAL RESULT: [0 0 1 1 0 0 0 0 0 1]
