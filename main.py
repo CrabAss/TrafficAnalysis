@@ -8,7 +8,7 @@ from sklearn import svm
 ### DATA READING STAGE ###
 
 f1 = h5py.File("data/BJ16_M32x32_T30_InOut.h5", "r")
-f2 = h5py.File("data/BJ_Meteorology.h5", "r")
+# f2 = h5py.File("data/BJ_Meteorology.h5", "r")
 
 # Transform a datasets in a .h5 file into an numpy array.
 
@@ -19,10 +19,10 @@ data = f1["data"][:]
 # An array of shape 7220x2x32x32 where the first dimension represents the index of timeslots. data[i][0] is a (32,
 # 32) inflow matrix and data[i][1] is a (32, 32) outflow matrix.
 
-temperature = f2["Temperature"][:]
+# temperature = f2["Temperature"][:]
 # An array of shape 7220x1 where temperature[i] is the temperature at i-th timeslot.
 
-weather = f2["Weather"][:]
+# weather = f2["Weather"][:]
 # An array of shape 7220x17 where weather[i] is a one-hot vector which means:
 # [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] Sunny
 # [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] Cloudy
@@ -42,12 +42,12 @@ weather = f2["Weather"][:]
 # [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0] Sandstorm
 # [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1] Dusty
 
-windspeed = f2["WindSpeed"][:]
+# windspeed = f2["WindSpeed"][:]
 # An array of shape 7220x1 where windspeed[i] is the wind speed at i-th timeslot.
 
-
 f1.close()
-f2.close()
+# f2.close()
+
 
 ### DATA PREPROCESSING STAGE ###
 
@@ -69,6 +69,7 @@ for x in date:
 
 date = dateReadable
 del dateReadable
+
 
 # Data cleansing
 
@@ -104,13 +105,8 @@ if isBrokenEntry:
         dirtyEntries.append(j)
     dirtyDays.append(dayNum)
 
-print("Number of valid entries:" + str(len(date) - len(dirtyEntries)))
-
 date = np.delete(date, dirtyEntries, axis=0)
 data = np.delete(data, dirtyEntries, axis=0)
-# temperature = np.delete(temperature, dirtyEntries, axis=0)
-# weather = np.delete(weather, dirtyEntries, axis=0)
-# windspeed = np.delete(windspeed, dirtyEntries, axis=0)
 
 
 # Data normalization
@@ -133,7 +129,7 @@ label = date[::48, 2]  # "1" if this date is in weekend; "0" otherwise
 # User Guide: https://scikit-learn.org/stable/user_guide.html
 # Choosing the right estimator: https://scikit-learn.org/stable/tutorial/machine_learning_map/index.html
 
-# The code below is only an example. This model performs VERY POOR.
+# The code below is only an example. The performance of this model is VERY POOR.
 # Need improvement.
 
 clf = svm.SVC(gamma=0.001, C=100.)  # Parameter tuning NEEDED.
