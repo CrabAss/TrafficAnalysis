@@ -2,7 +2,7 @@
 
 1. Install [JetBrains PyCharm Professional](https://www.jetbrains.com/pycharm/download/). Remember to use Student Free License.
 2. Install [Anaconda3](https://www.anaconda.com/distribution/#download-section).
-3. Open PyCharm, and clone this project. Log in to GitHub on PyCharm if necessary.
+3. Open PyCharm, clone this project and open it. Log in to GitHub on PyCharm if necessary.
 4. Create a folder called `data` and move the `*.h5` files provided on Blackboard to this folder.
 5. Enter `File > Settings > Project: TrafficAnalysis > Project Interpreter`.
 6. Click the "gear" button on the top-right corner of the dialog, and then click `Add...`.
