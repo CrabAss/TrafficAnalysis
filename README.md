@@ -7,7 +7,7 @@ Class project of COMP4434.
 License.
 2. Install [Anaconda3](https://www.anaconda.com/distribution/#download-section).
 3. Open PyCharm, clone this project and open it. Log in to GitHub on PyCharm if necessary.
-4. **[IMPORTANT]** Create a folder called `data` and move the `*.h5` files provided on Blackboard to this folder.
+4. **[IMPORTANT]** Create a folder called `data` and move the dataset files to this folder.
 5. Enter `File > Settings > Project: TrafficAnalysis > Project Interpreter`.
 6. Click the "gear" button on the top-right corner of the dialog, and then click `Add...`.
 7. Select `Conda Environment` on the left, and click `OK` button.
@@ -66,3 +66,11 @@ There are only 2 possible values of output for each input. `1` means that this d
 this day is a weekday. It is stored in the `label` array.
 
 Various classification models would be applied.
+
+## Acknowledgement
+
+Dataset used in this experiment is provided in the following paper:
+
+`Junbo Zhang, Yu Zheng, Dekang Qi. Deep Spatio-Temporal Residual Networks for Citywide Crowd Flows Prediction. In AAAI 2017. `
+
+It is available in [lucktroy/DeepST](https://github.com/lucktroy/DeepST/tree/master/data/TaxiBJ).
