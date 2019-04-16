@@ -69,8 +69,8 @@ Various classification models would be applied.
 
 ## Acknowledgement
 
-Dataset used in this experiment is provided in the following paper:
+The dataset used in this experiment is provided in the following paper:
 
 `Junbo Zhang, Yu Zheng, Dekang Qi. Deep Spatio-Temporal Residual Networks for Citywide Crowd Flows Prediction. In AAAI 2017. `
 
-It is available in [lucktroy/DeepST](https://github.com/lucktroy/DeepST/tree/master/data/TaxiBJ).
+This paper is available on [arXiv](https://arxiv.org/abs/1610.00081). The dataset is available in [lucktroy/DeepST](https://github.com/lucktroy/DeepST/tree/master/data/TaxiBJ).
