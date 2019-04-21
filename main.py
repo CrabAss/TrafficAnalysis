@@ -2,52 +2,27 @@ import datetime
 
 import h5py
 import numpy as np
+from sklearn import neighbors
 from sklearn import preprocessing
 from sklearn import svm
+from sklearn.ensemble import BaggingClassifier
+from sklearn.linear_model import SGDClassifier
+from sklearn.model_selection import cross_val_score
 
 ### DATA READING STAGE ###
 
-f1 = h5py.File("data/BJ16_M32x32_T30_InOut.h5", "r")
-# f2 = h5py.File("data/BJ_Meteorology.h5", "r")
+f = h5py.File("data/BJ16_M32x32_T30_InOut.h5", "r")
 
-# Transform a datasets in a .h5 file into an numpy array.
+# Transform a dataset in a .h5 file into an numpy array.
 
-date = f1["date"][:]
-# A array of shape 7220x1 where date[i] is the time of i-th timeslot.
+date = f["date"][:]
+# A array of shape 7220x1 where date[i] is the time of i-th time slot.
 
-data = f1["data"][:]
-# An array of shape 7220x2x32x32 where the first dimension represents the index of timeslots. data[i][0] is a (32,
+data = f["data"][:]
+# An array of shape 7220x2x32x32 where the first dimension represents the index of time slots. data[i][0] is a (32,
 # 32) inflow matrix and data[i][1] is a (32, 32) outflow matrix.
 
-# temperature = f2["Temperature"][:]
-# An array of shape 7220x1 where temperature[i] is the temperature at i-th timeslot.
-
-# weather = f2["Weather"][:]
-# An array of shape 7220x17 where weather[i] is a one-hot vector which means:
-# [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] Sunny
-# [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] Cloudy
-# [0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] Overcast
-# [0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] Rainy
-# [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] Sprinkle
-# [0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] ModerateRain
-# [0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] HeavyRain
-# [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0] Rainstorm
-# [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0] Thunderstorm
-# [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0] FreezingRain
-# [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0] Snowy
-# [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0] LightSnow
-# [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0] ModerateSnow
-# [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0] HeavySnow
-# [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0] Foggy
-# [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0] Sandstorm
-# [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1] Dusty
-
-# windspeed = f2["WindSpeed"][:]
-# An array of shape 7220x1 where windspeed[i] is the wind speed at i-th timeslot.
-
-f1.close()
-# f2.close()
-
+f.close()
 
 ### DATA PREPROCESSING STAGE ###
 
@@ -69,7 +44,6 @@ for x in date:
 
 date = dateReadable
 del dateReadable
-
 
 # Data cleansing
 
@@ -108,7 +82,6 @@ if isBrokenEntry:
 date = np.delete(date, dirtyEntries, axis=0)
 data = np.delete(data, dirtyEntries, axis=0)
 
-
 # Data normalization
 
 i = 0
@@ -124,17 +97,226 @@ label = date[::48, 2]  # "1" if this date is in weekend; "0" otherwise
 
 ### DATA MODELLING STAGE ###
 
-# Please refer to the link below to learn more:
-# Introduction: https://scikit-learn.org/stable/tutorial/basic/tutorial.html#learning-and-predicting
-# User Guide: https://scikit-learn.org/stable/user_guide.html
-# Choosing the right estimator: https://scikit-learn.org/stable/tutorial/machine_learning_map/index.html
+# SVC classifier
+# kernel='rbf'
 
-# The code below is only an example. The performance of this model is VERY POOR.
-# Need improvement.
+print("\nSVC classifier (kernel = 'rbf'):\n")
 
-clf = svm.SVC(gamma=0.001, C=100.)  # Parameter tuning NEEDED.
+clf = svm.SVC(C=1.0, kernel='rbf', gamma='auto')
+scores = cross_val_score(clf, data, label, cv=3)
+print("Accuracy: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2))
 
-clf.fit(data[:-10], label[:-10])
-print(clf.predict(data[-10:]))
+clf = svm.SVC(C=1.0, kernel='rbf', gamma='auto')
+scores = cross_val_score(clf, data, label, cv=4)
+print("Accuracy: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2))
 
-# ACTUAL RESULT: [0 0 1 1 0 0 0 0 0 1]
+clf = svm.SVC(C=1.0, kernel='rbf', gamma='auto')
+scores = cross_val_score(clf, data, label, cv=5)
+print("Accuracy: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2))
+
+# kernel='linear'
+
+print("\nSVC classifier (kernel = 'linear'):\n")
+
+clf = svm.SVC(C=1.0, kernel='linear', gamma='auto')
+scores = cross_val_score(clf, data, label, cv=3)
+print("Accuracy: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2))
+
+clf = svm.SVC(C=1.0, kernel='linear', gamma='auto')
+scores = cross_val_score(clf, data, label, cv=4)
+print("Accuracy: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2))
+
+clf = svm.SVC(C=1.0, kernel='linear', gamma='auto')
+scores = cross_val_score(clf, data, label, cv=5)
+print("Accuracy: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2))
+
+# kernel='sigmoid'
+
+print("\nSVC classifier (kernel = 'sigmoid'):\n")
+
+clf = svm.SVC(C=1.0, kernel='sigmoid', gamma='auto')
+scores = cross_val_score(clf, data, label, cv=3)
+print("Accuracy: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2))
+
+clf = svm.SVC(C=1.0, kernel='sigmoid', gamma='auto')
+scores = cross_val_score(clf, data, label, cv=4)
+print("Accuracy: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2))
+
+clf = svm.SVC(C=1.0, kernel='sigmoid', gamma='auto')
+scores = cross_val_score(clf, data, label, cv=5)
+print("Accuracy: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2))
+
+# kernel='poly'
+
+print("\nSVC classifier (kernel = 'poly'):\n")
+
+clf = svm.SVC(C=1.0, kernel='poly', gamma='auto')
+scores = cross_val_score(clf, data, label, cv=3)
+print("Accuracy: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2))
+
+clf = svm.SVC(C=1.0, kernel='poly', gamma='auto')
+scores = cross_val_score(clf, data, label, cv=4)
+print("Accuracy: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2))
+
+clf = svm.SVC(C=1.0, kernel='poly', gamma='auto')
+scores = cross_val_score(clf, data, label, cv=5)
+print("Accuracy: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2))
+
+# SGD classifier
+# loss='hinge'
+
+print("\nSGD classifier (loss='hinge'):\n")
+
+clf = SGDClassifier(loss="hinge", max_iter=5, tol=-np.infty)
+scores = cross_val_score(clf, data, label, cv=3)
+print("Accuracy: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2))
+
+clf = SGDClassifier(loss="hinge", max_iter=5, tol=-np.infty)
+scores = cross_val_score(clf, data, label, cv=4)
+print("Accuracy: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2))
+
+clf = SGDClassifier(loss="hinge", max_iter=5, tol=-np.infty)
+scores = cross_val_score(clf, data, label, cv=5)
+print("Accuracy: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2))
+
+# loss='modified_huber'
+
+print("\nSGD classifier (loss='modified_huber'):\n")
+
+clf = SGDClassifier(loss="modified_huber", max_iter=5, tol=-np.infty)
+scores = cross_val_score(clf, data, label, cv=3)
+print("Accuracy: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2))
+
+clf = SGDClassifier(loss="modified_huber", max_iter=5, tol=-np.infty)
+scores = cross_val_score(clf, data, label, cv=4)
+print("Accuracy: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2))
+
+clf = SGDClassifier(loss="modified_huber", max_iter=5, tol=-np.infty)
+scores = cross_val_score(clf, data, label, cv=5)
+print("Accuracy: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2))
+
+# loss='log'
+
+print("\nSGD classifier (loss='log'):\n")
+
+clf = SGDClassifier(loss="log", max_iter=5, tol=-np.infty)
+scores = cross_val_score(clf, data, label, cv=3)
+print("Accuracy: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2))
+
+clf = SGDClassifier(loss="log", max_iter=5, tol=-np.infty)
+scores = cross_val_score(clf, data, label, cv=4)
+print("Accuracy: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2))
+
+clf = SGDClassifier(loss="log", max_iter=5, tol=-np.infty)
+scores = cross_val_score(clf, data, label, cv=5)
+print("Accuracy: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2))
+
+# 3-neighbor classifier
+
+print("\n3-neighbor classifier:\n")
+
+clf = neighbors.KNeighborsClassifier(n_neighbors=3)
+print("Accuracy: %0.2f (+/- %0.2f)" % (
+    cross_val_score(clf, data, label, cv=3).mean(), cross_val_score(clf, data, label, cv=3).std() * 2))
+print("Accuracy: %0.2f (+/- %0.2f)" % (
+    cross_val_score(clf, data, label, cv=4).mean(), cross_val_score(clf, data, label, cv=4).std() * 2))
+print("Accuracy: %0.2f (+/- %0.2f)" % (
+    cross_val_score(clf, data, label, cv=5).mean(), cross_val_score(clf, data, label, cv=5).std() * 2))
+
+# 4-neighbor classifier
+
+print("\n4-neighbor classifier:\n")
+
+clf = neighbors.KNeighborsClassifier(n_neighbors=4)
+print("Accuracy: %0.2f (+/- %0.2f)" % (
+    cross_val_score(clf, data, label, cv=3).mean(), cross_val_score(clf, data, label, cv=3).std() * 2))
+print("Accuracy: %0.2f (+/- %0.2f)" % (
+    cross_val_score(clf, data, label, cv=4).mean(), cross_val_score(clf, data, label, cv=4).std() * 2))
+print("Accuracy: %0.2f (+/- %0.2f)" % (
+    cross_val_score(clf, data, label, cv=5).mean(), cross_val_score(clf, data, label, cv=5).std() * 2))
+
+# 5-neighbor classifier
+
+print("\n5-neighbor classifier:\n")
+
+clf = neighbors.KNeighborsClassifier(n_neighbors=5)
+print("Accuracy: %0.2f (+/- %0.2f)" % (
+    cross_val_score(clf, data, label, cv=3).mean(), cross_val_score(clf, data, label, cv=3).std() * 2))
+print("Accuracy: %0.2f (+/- %0.2f)" % (
+    cross_val_score(clf, data, label, cv=4).mean(), cross_val_score(clf, data, label, cv=4).std() * 2))
+print("Accuracy: %0.2f (+/- %0.2f)" % (
+    cross_val_score(clf, data, label, cv=5).mean(), cross_val_score(clf, data, label, cv=5).std() * 2))
+
+# Bagging Classifier (max_samples = 0.5, max_features = 0.5)
+# k == 3
+
+print("\nBagging Classifier (max_samples = 0.5, max_features = 0.5, k = 3):\n")
+
+clf = BaggingClassifier(neighbors.KNeighborsClassifier(n_neighbors=3), max_samples=0.5, max_features=0.5)
+print("Accuracy: %0.2f (+/- %0.2f)" % (
+    cross_val_score(clf, data, label, cv=3).mean(), cross_val_score(clf, data, label, cv=3).std() * 2))
+print("Accuracy: %0.2f (+/- %0.2f)" % (
+    cross_val_score(clf, data, label, cv=4).mean(), cross_val_score(clf, data, label, cv=4).std() * 2))
+print("Accuracy: %0.2f (+/- %0.2f)" % (
+    cross_val_score(clf, data, label, cv=5).mean(), cross_val_score(clf, data, label, cv=5).std() * 2))
+
+# k == 4
+
+print("\nBagging Classifier (max_samples = 0.5, max_features = 0.5, k = 4):\n")
+
+clf = BaggingClassifier(neighbors.KNeighborsClassifier(n_neighbors=4), max_samples=0.5, max_features=0.5)
+print("Accuracy: %0.2f (+/- %0.2f)" % (
+    cross_val_score(clf, data, label, cv=3).mean(), cross_val_score(clf, data, label, cv=3).std() * 2))
+print("Accuracy: %0.2f (+/- %0.2f)" % (
+    cross_val_score(clf, data, label, cv=4).mean(), cross_val_score(clf, data, label, cv=4).std() * 2))
+print("Accuracy: %0.2f (+/- %0.2f)" % (
+    cross_val_score(clf, data, label, cv=5).mean(), cross_val_score(clf, data, label, cv=5).std() * 2))
+
+# k == 5
+
+print("\nBagging Classifier (max_samples = 0.5, max_features = 0.5, k = 5):\n")
+
+clf = BaggingClassifier(neighbors.KNeighborsClassifier(n_neighbors=5), max_samples=0.5, max_features=0.5)
+print("Accuracy: %0.2f (+/- %0.2f)" % (
+    cross_val_score(clf, data, label, cv=3).mean(), cross_val_score(clf, data, label, cv=3).std() * 2))
+print("Accuracy: %0.2f (+/- %0.2f)" % (
+    cross_val_score(clf, data, label, cv=4).mean(), cross_val_score(clf, data, label, cv=4).std() * 2))
+print("Accuracy: %0.2f (+/- %0.2f)" % (
+    cross_val_score(clf, data, label, cv=5).mean(), cross_val_score(clf, data, label, cv=5).std() * 2))
+
+# Bagging Classifier (max_samples = 0.5, max_features = 0.2)
+# k == 3
+
+print("\nBagging Classifier (max_samples = 0.5, max_features = 0.2, k = 3):\n")
+
+clf = BaggingClassifier(neighbors.KNeighborsClassifier(n_neighbors=3), max_samples=0.5, max_features=0.2)
+print("Accuracy: %0.2f (+/- %0.2f)" % (
+    cross_val_score(clf, data, label, cv=3).mean(), cross_val_score(clf, data, label, cv=3).std() * 2))
+print("Accuracy: %0.2f (+/- %0.2f)" % (
+    cross_val_score(clf, data, label, cv=4).mean(), cross_val_score(clf, data, label, cv=4).std() * 2))
+print("Accuracy: %0.2f (+/- %0.2f)" % (
+    cross_val_score(clf, data, label, cv=5).mean(), cross_val_score(clf, data, label, cv=5).std() * 2))
+
+# k == 4
+
+print("\nBagging Classifier (max_samples = 0.5, max_features = 0.2, k = 4):\n")
+
+clf = BaggingClassifier(neighbors.KNeighborsClassifier(n_neighbors=4), max_samples=0.5, max_features=0.2)
+print("Accuracy: %0.2f (+/- %0.2f)" % (
+    cross_val_score(clf, data, label, cv=3).mean(), cross_val_score(clf, data, label, cv=3).std() * 2))
+print("Accuracy: %0.2f (+/- %0.2f)" % (
+    cross_val_score(clf, data, label, cv=4).mean(), cross_val_score(clf, data, label, cv=4).std() * 2))
+print("Accuracy: %0.2f (+/- %0.2f)" % (
+    cross_val_score(clf, data, label, cv=5).mean(), cross_val_score(clf, data, label, cv=5).std() * 2))
+
+# k == 5
+
+print("\nBagging Classifier (max_samples = 0.5, max_features = 0.2, k = 5):\n")
+
+clf = BaggingClassifier(neighbors.KNeighborsClassifier(n_neighbors=5), max_samples=0.5, max_features=0.2)
+print("Accuracy: %0.2f (+/- %0.2f)" % (
+    cross_val_score(clf, data, label, cv=3).mean(), cross_val_score(clf, data, label, cv=3).std() * 2))
+print("Accuracy: %0.2f (+/- %0.2f)" % (
+    cross_val_score(clf, data, label, cv=4).mean(), cross_val_score(clf, data, label, cv=4).std() * 2))
+print("Accuracy: %0.2f (+/- %0.2f)" % (
+    cross_val_score(clf, data, label, cv=5).mean(), cross_val_score(clf, data, label, cv=5).std() * 2))
