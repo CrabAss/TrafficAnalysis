@@ -1,5 +1,6 @@
 # TrafficAnalysis
-Class project of COMP4434.
+This is the term project of COMP4434, which aims to use different models to classify daily inflows/outflows of crowds into groups with different dates (weekends/weekdays).
+
 
 ## Get started
 
