@@ -3,10 +3,8 @@ Class project of COMP4434.
 
 ## Get started
 
-1. Install [JetBrains PyCharm Professional](https://www.jetbrains.com/pycharm/download/). Remember to use Student Free 
-License.
-2. Install [Anaconda3](https://www.anaconda.com/distribution/#download-section).
-3. Open PyCharm, clone this project and open it. Log in to GitHub on PyCharm if necessary.
+1. Install [JetBrains PyCharm Professional](https://www.jetbrains.com/pycharm/download/) and [Anaconda3](https://www.anaconda.com/distribution/#download-section).
+3. Open PyCharm, clone this project and open it.
 4. **[IMPORTANT]** Create a folder called `data` and move the dataset files to this folder.
 5. Enter `File > Settings > Project: TrafficAnalysis > Project Interpreter`.
 6. Click the "gear" button on the top-right corner of the dialog, and then click `Add...`.
@@ -18,16 +16,7 @@ do not hesitate to turn it on.
 11. PyCharm may suggest you to install missing packages. Allow it to do so.
 12. You are ready to go.
 
-## Resources
-
-We plan to use `scikit-learn` to implement the part of data model training and testing. Below are some resources for you 
-to get familiar with this module.
-
-* [Introduction to scikit-learn](https://scikit-learn.org/stable/tutorial/basic/tutorial.html#learning-and-predicting)
-* [User Guide of scikit-learn](https://scikit-learn.org/stable/user_guide.html)
-* [Choosing the right estimator](https://scikit-learn.org/stable/tutorial/machine_learning_map/index.html)
-
-## Data preprocessing: what has been done
+## Data preprocessing
 
 Currently, we do not use weather data to train data models.
 
@@ -56,7 +45,7 @@ The inflow/outflow data is normalized using `preprocessing.scale()` function fro
 In the given data, we found that some time slots are missing in some of the dates. So we iterate the `date` array to 
 figure out those "dirty" dates and remove these data entries.
 
-## Data modelling mechanism (tentative)
+## Data modelling mechanism
 
 We plan to train and test the data model using the whole inflow/outflow data of a single day (with 48 time slots) as a 
 single input entry. Therefore, there are 138 valid days (as input entries), and each input entry has 48 * 2 * 32 * 32 
@@ -66,6 +55,23 @@ There are only 2 possible values of output for each input. `1` means that this d
 this day is a weekday. It is stored in the `label` array.
 
 Various classification models would be applied.
+
+## Data model training and evaluation
+
+We use the following classifiers to train our model:
+
+ * SVM classfier
+ * SGD classfier
+ * k-NN classfier
+ * Bagging classifier
+ 
+According to our experiment result, 4-Nearest-Neighbor classifier performs the best among the others with the accuracy of 96%. 
+
+## Contributor
+
+* [@EririSawamura](https://github.com/EririSawamura), [@EvilCharles](https://github.com/EvilCharles), [@113741090a](https://github.com/113741090a): data model training and evaluation.
+* [@CrabAss](https://github.com/CrabAss), [@liao-victor](https://github.com/liao-victor): data preprocessing.
+* [@CrabAss](https://github.com/CrabAss): project coordinator.
 
 ## Acknowledgement
 
